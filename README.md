@@ -996,13 +996,13 @@ This builds your entire "database" (all 15 tabs, seed data, formulas, charts, tr
 
 1. Go back to the **spreadsheet tab** (the one named FinPilot).
 2. Wait a moment — a new menu appears in the toolbar.
-3. Click the **WealthOS** menu (the internal codename of the product).
+3. Click the **FinPilot** menu (the internal codename of the product).
 4. Click **Initialize Workbook**.
 5. If prompted, click **Authorize** / **Review permissions**:
    - Choose your Google account.
    - If Google warns *"Google hasn't verified this app"* → click **Advanced** → **Go to FinPilot (unsafe)**. This is normal for your own personal script.
    - Click **Allow**.
-6. An alert appears: **"WealthOS initialized. Open the Dashboard tab."** → click **OK**.
+6. An alert appears: **"FinPilot initialized. Open the Dashboard tab."** → click **OK**.
 
 ### Step 7 — Verify the installation
 
@@ -1032,7 +1032,7 @@ At the bottom of the spreadsheet you should now see these **15 tabs**:
 
 ### Step 8 — Install triggers (optional but recommended)
 
-1. Click **WealthOS → Setup Triggers**.
+1. Click **FinPilot → Setup Triggers**.
 2. Approve permissions if asked.
 3. Two triggers are created automatically:
    - **Daily 02:00** → `recurringNow` (materializes due recurring transactions)
@@ -1333,13 +1333,13 @@ Every shortcut does the same 4 things:
 | **"Permission denied" on Initialize** | OAuth not yet granted | Click **Authorize**, choose account, **Advanced → Go to … (unsafe) → Allow**. |
 | **404 / "Unknown action"** | Wrong URL or typo in `action` | Verify `/exec` URL and action name (e.g. `transaction.create`). |
 | **401 AUTH_REQUIRED** | Wrong/absent token | Re-run `rotateToken`, copy the token into the request. |
-| **No sheets generated** | `Initialize Workbook` never ran | Run **WealthOS → Initialize Workbook** and wait for the alert. |
-| **Charts missing** | First install or re-install | **WealthOS → Install Charts** (idempotent, won't stack charts). |
+| **No sheets generated** | `Initialize Workbook` never ran | Run **FinPilot → Initialize Workbook** and wait for the alert. |
+| **Charts missing** | First install or re-install | **FinPilot → Install Charts** (idempotent, won't stack charts). |
 | **`#REF!` / formula errors** | Tab renamed/deleted | Tab names are part of the schema — restore exact names. |
 | **OAuth "App not verified"** | Normal for personal scripts | **Advanced → Continue → Allow**. |
 | **Deployment error / authorization loop** | Execute-as vs. access mismatch | Deploy as **Me**, access **Anyone**, re-authorize, use a **new version** of an existing deployment. |
-| **Triggers not firing** | Never installed, or disabled | **WealthOS → Setup Triggers**; verify in Apps Script → Triggers. |
-| **Dashboard tab missing** | Dashboard never built | **WealthOS → Open Dashboard** (rebuilds it). |
+| **Triggers not firing** | Never installed, or disabled | **FinPilot → Setup Triggers**; verify in Apps Script → Triggers. |
+| **Dashboard tab missing** | Dashboard never built | **FinPilot → Open Dashboard** (rebuilds it). |
 | **Shortcut not working** | JSON keys mismatched | Compare your Dictionary keys to the API docs; check `Content-Type: application/json`. |
 | **Duplicate transactions** | Shortcut re-tap, no `external_ref` | Add a stable `external_ref`; use the duplicate warning notification. |
 | **Slow `analytics.run`** | Large ledger (> 50k rows) | See [Performance](#-performance) — schedule runs, migrate to PostgreSQL beyond 100k. |
@@ -1551,7 +1551,7 @@ ALL TESTS PASSED
 29. **How many API calls can I make?** Governed by Google quotas (e.g. 30 concurrent, 6-min executions).
 30. **Is rate limiting possible?** No client IPs in Apps Script web apps, so app-level limiting isn't possible; platform quotas backstop it.
 31. **What are the ID formats?** `TRX_…`, `ACC_…`, `CAT_…`, `SRC_…`, `BUD_…`, `GOL_…`, `REC_…`, `STG_…` — time-sortable and collision-resistant.
-32. **How do I regenerate analytics manually?** `POST analytics.run` or menu **WealthOS → Run Analytics**.
+32. **How do I regenerate analytics manually?** `POST analytics.run` or menu **FinPilot → Run Analytics**.
 33. **What happens if analytics fails mid-write?** `replaceRows` clears then writes; a failure self-heals on the next run.
 34. **Can I export my data?** Yes — `export` returns JSON or CSV for any allowed table.
 
@@ -1562,7 +1562,7 @@ ALL TESTS PASSED
 38. **Is my data sold or mined?** No third-party analytics; it's your Google account.
 
 ### Project
-39. **Why is the in-app menu named "WealthOS"?** It's the internal codename; the product is FinPilot.
+39. **Why is the in-app menu named "FinPilot"?** It's the internal codename; the product is FinPilot.
 40. **Can I contribute?** Yes — fork, branch, test, PR (see [Development](#-development)).
 
 ---
