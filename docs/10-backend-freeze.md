@@ -321,10 +321,18 @@ Platform quotas (official, updated 2026-07-22; consumer / Workspace):
 
 ## Certification
 
-- Test suite: **60/60 PASS** (`cd tests && ./run.sh`).
+- Test suite: **62/62 PASS** (`cd tests && ./run.sh`).
 - Backend freeze sections 1–15 verified against the code in Passes 1–7
   (`docs/08`, `docs/09`). No open defects; every residual is measured and
   accepted above.
+- **Post-freeze errata (2026-08-05, Pass 8 in `docs/09`, §12 in `docs/08`):** a
+  runtime-validity audit found two would-throw Apps Script calls in
+  `FormattingService.gs` (`Protection` editor APIs on a warning-only protection;
+  `Range.setConditionalFormatRules`, which is a `Sheet` method). Both were
+  behavior-preserving proven-defect fixes under §11 — they make the frozen intent
+  (warning-only protection, conditional formatting on dashboard /
+  `financial_score` / `transactions`) actually execute — and are covered by the two
+  new regression tests (suite 60 → 62). No frozen contract in §3–§9 changed.
 - Quota usage stays inside all platform limits through 100k transactions
   (measured, `docs/08 §11`).
 - **Recommendation: GO.** FinPilot v0 backend is certified and frozen at v1.0.0.

@@ -183,7 +183,7 @@ A versioned JSON API (`meta.api_version`, currently `1.0.0`) with 28 actions cov
 
 ### 🧑‍💻 Developer Experience
 
-- 60/60 regression assertions, runnable offline in Node — no Google account needed to develop.
+- 62/62 regression assertions, runnable offline in Node — no Google account needed to develop.
 - Flat, readable ES5 modules with documented contracts (no build step, no transpile).
 - Loose coupling via an event bus and a repository adapter — swap Sheets for PostgreSQL without touching business logic.
 
@@ -1470,7 +1470,7 @@ PASS: Period validation
 ALL TESTS PASSED
 ```
 
-- 60/60 assertions across value objects, validation, balance engine, recurring engine, analytics, security, concurrency and E2E flows.
+- 62/62 assertions across value objects, validation, balance engine, recurring engine, analytics, security, concurrency, Apps Script API validity and E2E flows.
 - The harness copies `.gs → .js`, stubs the GAS services, and runs the **real** domain code in a Node VM.
 - **Add a regression test with every fix** (project rule).
 

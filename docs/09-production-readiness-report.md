@@ -213,6 +213,19 @@ executions/user, 1000/script, 20 triggers, trigger runtime 90 min/day (consumer)
 through 100k rows. No app-level rate limiting is possible (web apps get no client IP);
 platform quotas are the backstop.
 
+### Pass 8 — post-freeze API-validity audit (N1–N2)
+
+Every Apps Script API call in the codebase was re-checked against the official
+runtime reference (GAS does not support TypeScript; calls are only caught at
+runtime). Two more invalid calls were found — both in `FormattingService.gs`,
+both throwing inside swallowed `try/catch`, so the frozen intent was silently not
+applied. Both fixes are behavior-preserving. Suite now **62/62**.
+
+| ID | Location | Finding | Fix |
+|---|---|---|---|
+| N1 | `FormattingService.gs:137` (`protectTables`) | `Protection.removeEditors`/`getEditors`/`canEdit` are restricted to **non-warning-only** protections per the official `Protection` reference; this warning-only path could throw. | Removed the editor-list logic; every table protection stays `setWarningOnly(true)`. |
+| N2 | `FormattingService.gs:198,205,219` (`conditionalRules`) | `Range.setConditionalFormatRules` is **not** an API — `setConditionalFormatRules` lives on `Sheet` (replaces the whole sheet's rule set). The calls threw, so dashboard/financial_score/transactions never got their conditional formatting. | Calls now target the owning `Sheet` (`dash`/`score`/`tx`); each sheet gets exactly its intended rule set, so replace-all semantics are equivalent. |
+
 ---
 
 ## 3. Files modified
@@ -222,15 +235,15 @@ platform quotas are the backstop.
 | `apps-script/DashboardService.gs` | I1 `apiSummary` sheet reassignment; I2 chart removal before install; P04 `fBurn` monthly burn; P05 `budgetOverFormula`; J1 `fNetWorth` plain sum (no credit flip). |
 | `apps-script/AnalyticsService.gs` | H1 `netWorthAt` no-flip; P06 settings wiring; K4 `apiImport` row cap + fail-fast validation; `MAX_IMPORT_ROWS`; M2 roadmap `stage_id` preserved on regeneration. |
 | `apps-script/MasterDataServices.gs` | H2 `computeNextRun` + `run()` rework; H3 day_of_week range; I4 formula wiring on `account.create`/`goal.create`. |
-| `apps-script/FormattingService.gs` | P02/P03 API fixes; I3 metric dropdown; I4 derived-formula row helpers + builders; J2 goals `priority` dropdown col 9. |
+| `apps-script/FormattingService.gs` | P02/P03 API fixes; I3 metric dropdown; I4 derived-formula row helpers + builders; J2 goals `priority` dropdown col 9; N1 warning-only protection cleanup (no editor-list APIs); N2 conditional rules via `Sheet.setConditionalFormatRules`. |
 | `apps-script/LookupService.gs` | I3 `metric` lookup group. |
 | `apps-script/Repository.gs` | P07 dead constants removed; K1 `guardFormula` at write boundary (appendRow/updateRow/updateCell/writeTableData). |
 | `apps-script/IdGenerator.gs` | P08 unused prefix removed. |
 | `apps-script/Code.gs` | K3 `READ_ONLY_ACTIONS` + GET 405 enforcement. |
 | `apps-script/SettingsService.gs` | K2 secret masking in keyed `settings.get`; M1 `set` serialized under the script lock. |
 | `sql/schema_postgres.sql` | H1 `v_net_worth` no-flip. |
-| `tests/run-tests.js` | P01 harness fix; P04 fBurn test; I3/I4 tests; H1 net-worth test; H2 recurring date/missed-run/idempotency/end-date tests; J1 fNetWorth plain-sum test; J2 dropdown-column test (+ `status` lookup stub); K1 guard + import-persistence tests; K2 secret-masking test; K3 GET read-only test; K4 import fail-fast + cap tests (+ `__realAppendRow` capture); M1 lock-acquisition + reentrancy test; M2 roadmap `stage_id` preservation test. Suite now 60 assertions. |
-| `README.md` | Test count → 60. |
+| `tests/run-tests.js` | P01 harness fix; P04 fBurn test; I3/I4 tests; H1 net-worth test; H2 recurring date/missed-run/idempotency/end-date tests; J1 fNetWorth plain-sum test; J2 dropdown-column test (+ `status` lookup stub); K1 guard + import-persistence tests; K2 secret-masking test; K3 GET read-only test; K4 import fail-fast + cap tests (+ `__realAppendRow` capture); M1 lock-acquisition + reentrancy test; M2 roadmap `stage_id` preservation test; N1 warning-only-protection regression test; N2 Sheet-level conditional-rules regression test. Suite now 62 assertions. |
+| `README.md` | Test count → 62. |
 | `docs/01-architecture.md` | P13 ID prefix list. |
 | `docs/02-schema.md` | H4 liability sign convention (§3) + recurring engine semantics (§8); I3 `metric` enum. |
 | `docs/03-formula-system.md` | P09 authoritative formulas; I2 chart-removal note. |
@@ -252,7 +265,7 @@ suite assertion count is unchanged.
 ```
 cd tests && ./run.sh
 ```
-**Result: ALL TESTS PASSED — 60/60.**
+**Result: ALL TESTS PASSED — 62/62.**
 
 Coverage: value objects (Money/Period/DateStamp), ID format, duplicate
 fingerprints, per-type validation invariants, balance-engine transfer semantics,
@@ -269,15 +282,23 @@ data-validation dropdown column mapping (goals `priority` → column 9, status �
 formula-helper safety, **the security suite** (formula-injection guard,
 formula-safe import through the persistence layer, secret masking in
 `settings.get`, GET read-only enforcement, import fail-fast/cap validation),
-**and the concurrency suite**: settings writes acquire the script lock without
-re-acquiring when nested, and roadmap regeneration preserves the `STG_` primary
-key across repeated runs.
+**the concurrency suite** (settings writes acquire the script lock without
+re-acquiring when nested; roadmap regeneration preserves the `STG_` primary
+key across repeated runs), **and the post-freeze API-validity suite**:
+conditional rules install through the Sheet API (a Range call throws, gets
+swallowed, and installs nothing) and warning-only protections never touch the
+editor-list APIs.
 
 **Pass 7 (performance/scalability/quota audit):** the suite assertion count is
 unchanged (no app-code changes were made), but the hot paths were measured at
 1k/10k/50k/100k rows and every operation, engine, cache, trigger and import/export
 path was costed against the official platform quotas (see `docs/08 §11` and
 `docs/10`).
+
+**Pass 8 (post-freeze API-validity audit):** two invalid Apps Script calls in
+`FormattingService.gs` were proven against the official reference, fixed
+(behavior-preserving), and locked with regression tests; the suite grew 60 → 62
+(see `docs/08 §12`).
 
 ---
 
@@ -356,6 +377,6 @@ columns, a security posture that closes formula injection, secret disclosure,
 GET-side mutations and unbounded imports, a concurrency posture that serializes
 every mutation under the script lock and preserves primary keys across
 regeneration, a measured performance profile that stays inside every platform
-quota through 100k transactions, 60/60 tests passing, and every documentation
+quota through 100k transactions, 62/62 tests passing, and every documentation
 claim verified against the code. The v1.0 backend is now formally frozen in
 `docs/10-backend-freeze.md`. FinPilot v0 is production-ready.

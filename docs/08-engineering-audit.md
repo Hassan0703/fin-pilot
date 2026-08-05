@@ -5,7 +5,8 @@ the PostgreSQL migration schema (`sql/schema_postgres.sql`), and the docs (`docs
 **Constraint honoured:** bugs fixed, no new features added.
 
 **Result:** every finding in-scope was fixed and covered by a regression test. The test suite
-passes **60/60 assertions** (`tests/run.sh`) as of the Phase-7 v1.0 backend freeze.
+passes **62/62 assertions** (`tests/run.sh`) as of the Phase-7 v1.0 backend freeze and the
+post-freeze API-validity pass (§12).
 
 ---
 
